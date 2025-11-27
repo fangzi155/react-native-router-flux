@@ -333,18 +333,22 @@ const MainTabs = ({ route, navigation }) => {
   console.log("📦 drawer scene maintabs对象tabsInfo_tabbar:", tabsInfo_tabbar);
   console.log("📦 drawer scene maintabs对象tabchildren:", tabchildren);
 
+  const backtoint=  tabsInfo_tabbar.backToInitial
+  const bactoInstring=backtoint===true?"initialRoute":"order"
   return (
     <Tab.Navigator
       key="tabbar"
       name="tabbar"
       routeName="tabbar"
       initialRouteName={getInitName(tabchildren)}
+
+    {...(backtoint && { backBehavior: bactoInstring })}
       screenListeners={{
      tabPress:tabsInfo_tabbar.tabBarOnPress,
   
       }}
       screenOptions={({ route }) => {
-
+   const finalHideTabBar = route.params?.hideTabBar;
         return {
           // 全局标签栏样式
           tabBarShowLabel: tabsInfo_tabbar.showLabel,
@@ -353,8 +357,7 @@ const MainTabs = ({ route, navigation }) => {
 
          tabBarInactiveBackgroundColor: tabsInfo_tabbar.inactiveBackgroundColor,
 
-         tabBarStyle: tabsInfo_tabbar.tabBarStyle,
-
+          tabBarStyle: finalHideTabBar ? { display: 'none' } : tabsInfo_tabbar.tabBarStyle,
           tabBarActiveTintColor: tabsInfo_tabbar.activeTintColor, // 整个标签栏的背景色
          tabBarInactiveTintColor: tabsInfo_tabbar.inactiveTintColor, // 激活状态文字/图标颜色
           tabBarLabelStyle: tabsInfo_tabbar.labelStyle,
@@ -364,11 +367,13 @@ const MainTabs = ({ route, navigation }) => {
           
           onPress: tabsInfo_tabbar.tabBarOnPress,
 
-          tabBarIndicatorStyle:tabsInfo_tabbar.indicatorStyle
+          tabBarIndicatorStyle:tabsInfo_tabbar.indicatorStyle,
+          tabBarScrollEnabled: tabsInfo_tabbar.wrap,
 
         };
       }}
       tabBar={tabsInfo_tabbar.tabBarComponent}
+   
    
     >
       {tabchildren.map((tabItem, index) => {
@@ -450,20 +455,22 @@ const MainTabs = ({ route, navigation }) => {
                 const finalhideNavBar = route.params?.hideNavBar ?? hideNavBar
                 return {
                   title: title || tabItem.title,
-                  headerShown: !finalhideNavBar,
+              headerShown: navigationBarStyle!=undefined?true:false,
                   // Header 左边抽屉按钮
                   headerLeft: headerleftinfo,
 
-                  tabBarStyle: hideTabBar ? { display: 'none' } : { display: 'flex' },
+                 // tabBarStyle: hideTabBar ? { display: 'none' } : { display: 'flex' },
                   // 顶部导航栏样式
-                  headerStyle: {
-                    backgroundColor: navigationBarStyle?.backgroundColor || '#F5FCFF',
-                  },
-                  headerTitleAlign: titleStyle?.alignSelf || 'center',
-                  headerTitleStyle: {
-                    color: titleStyle?.color || '#000',
-                  },
-           
+                  // headerStyle: {
+                  //   backgroundColor: navigationBarStyle?.backgroundColor || '#F5FCFF',
+                  // },
+
+                       headerStyle: navigationBarStyle,
+             
+                  headerTitleStyle: titleStyle,
+                  titleStyle:titleStyle,
+             tabBarItemStyle: tabsInfo_tabbar.tabStyle,
+             
 
                   // 底部标签栏图标和样式
                   tabBarIcon: ({ focused, color, size }) => {
@@ -508,13 +515,18 @@ const MainTabs = ({ route, navigation }) => {
                         headerLeft:headerleftinfo,
 
                         // 顶部导航栏样式
-                        headerStyle: {
-                          backgroundColor: tabItem.navigationBarStyle?.backgroundColor || '#F5FCFF',
-                        },
+                        // headerStyle: {
+                        //   backgroundColor: tabItem.navigationBarStyle?.backgroundColor || '#F5FCFF',
+                        // },
+
+                             headerStyle:  tabItem.navigationBarStyle ,
+                        
                         headerTitleAlign: tabItem.titleStyle?.alignSelf || 'center',
-                        headerTitleStyle: {
-                          color: tabItem.titleStyle?.color || '#000',
-                        },
+                        // headerTitleStyle: {
+                        //   color: tabItem.titleStyle?.color || '#000',
+                        // },
+
+                               headerTitleStyle:tabItem.titleStyle,
              
                         headerRight: rightFun, // 右边文字
                       }
@@ -616,26 +628,32 @@ const MainTabs = ({ route, navigation }) => {
               const finalHideTabBar = route.params?.hideTabBar ?? hideTabBar;
               return {
                 title: title,
-                headerShown: false,
+                headerShown: navigationBarStyle!=undefined?true:false,
                 // 底部标签栏图标和样式
-                tabBarIcon: ({ focused, color, size }) => {
-                  if (icon) {
-                    // 使用自定义图标组件
-                    return React.createElement(icon, {
-                      focused,
-                      title: tabTitle
-                    });
-                  }
-                  // 默认图标
-                  return (
-                    <Ionicons
-                      name={focused ? 'home' : 'home-outline'}
-                      size={size}
-                      color={color}
-                    />
-                  );
-                },
-                tabBarStyle: finalHideTabBar ? { display: 'none' } : { display: 'flex' },
+             tabBarItemStyle: tabsInfo_tabbar.tabStyle,
+                  headerStyle: navigationBarStyle,
+             
+                  headerTitleStyle: titleStyle,
+                  titleStyle:titleStyle,
+             tabBarItemStyle: tabsInfo_tabbar.tabStyle,
+        
+      tabBarIcon: ({ focused, color, size }) => {
+                    if (icon) {
+                      // 使用自定义图标组件
+                      return React.createElement(icon, {
+                        focused,
+                        title: tabTitle
+                      });
+                    }
+                    // 默认图标
+                    return (
+                      <Ionicons
+                        name={focused ? 'home' : 'home-outline'}
+                        size={size}
+                        color={color}
+                      />
+                    );
+                  },
                 options:{
                        //tabStyle:tabsInfo_tabbar.tabStyle,
                 }
@@ -679,6 +697,7 @@ function GetTabStack(childrenScens, tabItem, drawerData, tabbarinfo, navigation)
           component,
           title,
           onRight,
+          titleStyle,
           rightTitle,
           renderRightButton
         } = stackSceneItem.props;
@@ -747,38 +766,15 @@ function GetTabStack(childrenScens, tabItem, drawerData, tabbarinfo, navigation)
 
               // Header 左边抽屉按钮
               headerLeft: headerleftinfo,
-
-
-              // 顶部导航栏样式
-              headerStyle: {
-                backgroundColor: tabItem.navigationBarStyle?.backgroundColor || '#F5FCFF',
+     
+                   headerStyle: {
+                backgroundColor: titleStyle!=undefined?titleStyle?.backgroundColor : tabItem.titleStyle?.backgroundColor,
               },
-              headerTitleAlign: tabItem.titleStyle?.alignSelf || 'center',
-              headerTitleStyle: {
-                color: tabItem.titleStyle?.color || '#000',
-              },
-
-              // 底部标签栏图标和样式
-              // tabBarIcon: ({ focused, color, size }) => {
-              //   if (tabItem.icon) {
-              //     // 使用自定义图标组件
-              //     return React.createElement(tabItem.icon, {
-              //       focused,
-              //      // title: tabbarinfo.tabBarLabel
-              //      title:"titless"
-
-              //     });
-              //   }
-              //   // 默认图标
-              //   return (
-              //     <Ionicons 
-              //       name={focused ? 'home' : 'home-outline'} 
-              //       size={size} 
-              //       color={color} 
-              //     />
-              //   );
-              // },
-
+              headerTitleAlign:titleStyle?.alignSelf || 'center',
+              headerTitleStyle: titleStyle!=undefined?titleStyle:tabItem.titleStyle,
+         
+              titleStyle:titleStyle,
+  
               headerRight: rightFun, // 右边文字
             }
           }}
