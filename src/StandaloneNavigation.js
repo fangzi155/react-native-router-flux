@@ -25,7 +25,7 @@ export const closeAppDrawer = () => {
 
 const Drawer = createDrawerNavigator();
 
-var Tab = createBottomTabNavigator();
+var Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
 
 export var sceneData = {};
@@ -335,12 +335,19 @@ const MainTabs = ({ route, navigation }) => {
 
   const backtoint=  tabsInfo_tabbar.backToInitial
   const bactoInstring=backtoint===true?"initialRoute":"order"
+  const lazy=tabsInfo_tabbar.lazy===false?false:true;
+  console.log("📦 drawer scene maintabslazy:", lazy);
+    
+  const postab= tabsInfo_tabbar.tabBarPosition==="top"?"top":"bottom";
+  console.log("postabss--=="+postab);
+
   return (
     <Tab.Navigator
       key="tabbar"
       name="tabbar"
       routeName="tabbar"
       initialRouteName={getInitName(tabchildren)}
+
 
     {...(backtoint && { backBehavior: bactoInstring })}
       screenListeners={{
@@ -354,21 +361,17 @@ const MainTabs = ({ route, navigation }) => {
           tabBarShowLabel: tabsInfo_tabbar.showLabel,
           // 激活状态标签样式
          tabBarActiveBackgroundColor: tabsInfo_tabbar.activeBackgroundColor,
-
          tabBarInactiveBackgroundColor: tabsInfo_tabbar.inactiveBackgroundColor,
-
           tabBarStyle: finalHideTabBar ? { display: 'none' } : tabsInfo_tabbar.tabBarStyle,
           tabBarActiveTintColor: tabsInfo_tabbar.activeTintColor, // 整个标签栏的背景色
          tabBarInactiveTintColor: tabsInfo_tabbar.inactiveTintColor, // 激活状态文字/图标颜色
           tabBarLabelStyle: tabsInfo_tabbar.labelStyle,
           tabBarItemStyle: tabsInfo_tabbar.tabStyle,
-   
           swipeEnabled: tabsInfo_tabbar.swipeEnabled,
-          
           onPress: tabsInfo_tabbar.tabBarOnPress,
-
           tabBarIndicatorStyle:tabsInfo_tabbar.indicatorStyle,
           tabBarScrollEnabled: tabsInfo_tabbar.wrap,
+          lazy:lazy,
 
         };
       }}
@@ -469,7 +472,7 @@ const MainTabs = ({ route, navigation }) => {
              
                   headerTitleStyle: titleStyle,
                   titleStyle:titleStyle,
-             tabBarItemStyle: tabsInfo_tabbar.tabStyle,
+                  tabBarItemStyle: tabsInfo_tabbar.tabStyle,
              
 
                   // 底部标签栏图标和样式
@@ -635,7 +638,6 @@ const MainTabs = ({ route, navigation }) => {
              
                   headerTitleStyle: titleStyle,
                   titleStyle:titleStyle,
-             tabBarItemStyle: tabsInfo_tabbar.tabStyle,
         
       tabBarIcon: ({ focused, color, size }) => {
                     if (icon) {
@@ -926,10 +928,10 @@ export function StandaloneNavigation() {
     console.log("postab=="+postab);
     Tab=createMaterialTopTabNavigator();
    }else{
-    Tab=createBottomTabNavigator();
+     Tab=createBottomTabNavigator();
    }
-  console.log("📦 drawer scene 对象drawerData--selitem-:", drawerdata_info);
 
+  console.log("📦 drawer scene 对象drawerData--selitem-:", drawerdata_info);
   console.log("📦 drawer scene 对象prpdrawerData:", drawerdata_info.props.contentComponent);
   return (
     <NavigationContainer ref={navigationRef}       >

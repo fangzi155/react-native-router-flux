@@ -7,7 +7,14 @@ import PropTypes from 'prop-types';
 import NavigationStore from './Store';
 import defaultStore from './defaultStore';
 import pathParser from './pathParser';
+import {  Dimensions } from 'react-native';
 
+if (Platform.OS === 'harmony' && !Dimensions.removeEventListener) {
+  Dimensions.removeEventListener = () => {
+    // 空函数，防止崩溃
+    console.log('Harmony: Dimensions.removeEventListener is called (no-op)');
+  };
+}
 class App extends React.Component {
   static propTypes = {
     navigator: PropTypes.func,
@@ -26,26 +33,53 @@ class App extends React.Component {
   backHandlerSubscription;
   linkingSubscription;
   componentDidMount() {
-   this.backHandlerSubscription=  BackHandler.addEventListener('hardwareBackPress', this.props.backAndroidHandler || this.onBackPress);
+        // BackHandler - 兼容新旧API
+    const backCallback = this.props.backAndroidHandler || this.onBackPress;
+    if (typeof BackHandler.addEventListener === 'function') {
+      const sub = BackHandler.addEventListener('hardwareBackPress', backCallback);
+      this.backHandlerSubscription = sub && typeof sub.remove === 'function' ? sub : null;
+    } else {
+      BackHandler.addEventListener('hardwareBackPress', backCallback);
+    }
 
-    // If the app was "woken up" by an external route.
+    // Linking - 兼容新旧API
     Linking.getInitialURL().then(url => this.parseDeepURL(url));
-    // Add an event listener for further deep linking.
-    this.linkingSubscription= Linking.addEventListener('url', this.handleDeepURL);
+    if (typeof Linking.addEventListener === 'function') {
+      const sub = Linking.addEventListener('url', this.handleDeepURL);
+      this.linkingSubscription = sub && typeof sub.remove === 'function' ? sub : null;
+    } else {
+      Linking.addEventListener('url', this.handleDeepURL);
+    }
   }
 
   componentWillUnmount() {
-   // BackHandler.removeEventListener('hardwareBackPress', this.props.backAndroidHandler || this.onBackPress);
 
-     // 使用新API移除监听
+        // BackHandler 清理
     if (this.backHandlerSubscription) {
       this.backHandlerSubscription.remove();
+    } else if (this.props.backAndroidHandler || this.onBackPress) {
+      // 回退到旧API
+      try {
+        BackHandler.removeEventListener(
+          'hardwareBackPress', 
+          this.props.backAndroidHandler || this.onBackPress
+        );
+      } catch (error) {
+        console.warn('BackHandler清理失败:', error);
+      }
     }
-   // Linking.removeEventListener('url', this.handleDeepURL);
-    // 使用新API移除监听
+
+    // Linking 清理
     if (this.linkingSubscription) {
       this.linkingSubscription.remove();
+    } else {
+      try {
+        Linking.removeEventListener('url', this.handleDeepURL);
+      } catch (error) {
+        console.warn('Linking清理失败:', error);
+      }
     }
+  
   }
 
   onBackPress = () => this.props.navigationStore.pop();
